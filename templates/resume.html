@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SkillSync - Resume Builder</title>
+<style>
+:root{
+  --primary:#6C63FF;
+  --bg:linear-gradient(135deg,#fdfbfb,#ebedee);
+  --card:rgba(255,255,255,0.85);
+  --text:#222;
+  --muted:#666;
+}
+*{box-sizing:border-box;transition:all .3s ease}
+body{
+  font-family:'Poppins',Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  margin:0;
+  padding:24px;
+  backdrop-filter:blur(10px);
+}
+.wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:20px}
+header{grid-column:1/-1;margin-bottom:12px;text-align:center;padding:10px 0;background:linear-gradient(90deg,#6C63FF,#A66CFF);border-radius:12px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+h1{margin:0;font-size:22px;letter-spacing:0.5px}
+.card{
+  background:var(--card);
+  padding:16px;
+  border-radius:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  backdrop-filter:blur(6px);
+}
+label{display:block;font-weight:600;margin-top:12px;font-size:13px;color:var(--muted)}
+input[type=text], input[type=email], textarea, select{
+  width:100%;
+  padding:8px;
+  margin-top:6px;
+  border:1px solid #ddd;
+  border-radius:6px;
+  font-size:14px;
+  background:#fff;
+}
+textarea{min-height:84px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  display:inline-block;
+  padding:8px 14px;
+  border-radius:7px;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+  cursor:pointer;
+  font-weight:500;
+}
+.btn:hover{opacity:0.85;transform:translateY(-1px)}
+.btn.ghost{
+  background:#fff;
+  color:var(--primary);
+  border:1px solid #ddd;
+}
+.small{font-size:13px;padding:6px 10px}
+.preview-wrap{display:flex;flex-direction:column;gap:10px}
+#resumePreview{
+  background:#fff;
+  padding:18px;
+  border-radius:10px;
+  border:1px solid #e6e6e6;
+  min-height:380px;
+  overflow:auto;
+}
+.resume{font-size:14px;line-height:1.35;color:var(--text)}
+.resume h2{margin:0 0 6px 0;font-size:20px}
+.resume .contact{color:var(--muted);margin-bottom:10px}
+.resume h3{margin:12px 0 6px 0;font-size:13px}
+.resume p{margin:0 0 8px 0}
+.t-classic .name{font-weight:700}
+.t-modern .name{color:var(--primary);font-weight:700;text-transform:uppercase}
+.t-minimal .name{text-align:center;font-weight:700}
+.t-elegant .name{border-bottom:2px solid var(--primary);padding-bottom:6px}
+.right{position:sticky;top:20px}
+.section-title{font-weight:700;margin-bottom:6px;font-size:15px;color:var(--primary)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:#f0f0f0;padding:6px 8px;border-radius:999px;font-size:13px;cursor:pointer}
+.chip:hover{background:#d9d9ff}
+.preview-device{border:1px solid #ddd;border-radius:10px;padding:8px;background:#fff}
+.phone{width:320px;height:568px;border:1px solid #ddd;border-radius:12px;padding:10px;overflow:auto}
+.desktop{width:720px;height:420px;padding:12px;overflow:auto}
+footer{grid-column:1/-1;margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+#loadingOverlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.3);
+  display:flex;justify-content:center;align-items:center;
+  font-size:22px;color:#fff;font-weight:700;
+  z-index:9999;display:none;
+}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr}.right{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>SkillSync — ATS Friendly Resume Builder</h1>
+    <div style="font-size:13px;opacity:.9">Create beautiful, recruiter-approved resumes</div>
+  </header>
+
+  <!-- left: form -->
+  <div>
+    <div class="card">
+      <div class="section-title">Basic details</div>
+      <label>Full name</label>
+      <input id="name" type="text" placeholder="Shaurya">
+
+      <label>Role / Target Job Title</label>
+      <select id="roleSelect"></select>
+
+      <label>Email</label>
+      <input id="email" type="email" placeholder="you@example.com">
+
+      <label>Phone</label>
+      <input id="phone" type="text" placeholder="+91 ...">
+
+      <label>Profile summary</label>
+      <textarea id="summary" placeholder="Short professional summary..."></textarea>
+      <div class="row" style="margin-top:8px">
+        <input id="years" type="text" placeholder="Years (e.g. 3)" style="width:140px">
+        <input id="industry" type="text" placeholder="Industry (e.g. Fintech)" style="width:180px">
+        <button class="btn small" onclick="generateSummary()">Generate Summary</button>
+      </div>
+
+      <label>Education</label>
+      <textarea id="education" placeholder="Degree, institution, year"></textarea>
+
+      <label>Experience</label>
+      <textarea id="experience" placeholder="Company — Role — Achievements"></textarea>
+
+      <label>Skills (comma separated)</label>
+      <input id="skills" type="text" placeholder="JavaScript, React, SQL">
+
+      <label>Achievements & soft skills</label>
+      <div id="suggestions" class="chips" style="margin-top:8px"></div>
+
+      <label>Template customization</label>
+      <div class="row">
+        <select id="fontSelect">
+          <option value="Arial,Helvetica,sans-serif">Arial</option>
+          <option value="Calibri,Arial,Helvetica,sans-serif">Calibri</option>
+          <option value="Times New Roman,serif">Times New Roman</option>
+          <option value="Georgia,serif">Georgia</option>
+        </select>
+        <input id="headingColor" type="color" value="#6C63FF" style="width:70px">
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" onclick="fillTemplate()">Fill role template</button>
+        <button class="btn ghost" onclick="clearForm()">Clear</button>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+        <button class="btn" onclick="downloadPDF()">Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- right: preview -->
+  <aside class="right">
+    <div class="card preview-wrap">
+      <div class="section-title">Live Preview</div>
+      <div class="flex" style="display:flex;gap:10px;align-items:center">
+        <div class="muted">Device</div>
+        <select id="deviceToggle" onchange="updatePreview()">
+          <option value="desktop">Desktop</option>
+          <option value="mobile">Mobile</option>
+        </select>
+        <div style="margin-left:auto" class="muted">Template</div>
+        <select id="templateSelect" onchange="updatePreview()">
+          <option value="t-classic">Classic</option>
+          <option value="t-modern">Modern</option>
+          <option value="t-minimal">Minimal</option>
+          <option value="t-elegant">Elegant</option>
+        </select>
+      </div>
+
+      <div id="previewDevice" class="preview-device" style="margin-top:10px">
+        <div id="resumePreview" class="desktop"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn small" onclick="updatePreview()">Refresh</button>
+        <button class="btn small ghost" onclick="copyToClipboard()">Copy text</button>
+      </div>
+    </div>
+  </aside>
+
+  <footer>2025 © SkillSync by Shaurya</footer>
+</div>
+
+<div id="loadingOverlay">Generating PDF...</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+const ROLE_DATA = {
+  'Frontend Developer': { skills:['HTML','CSS','JS','React'], template:{summary:'Frontend dev with {years} years in {industry}.', education:'B.Sc. CS', experience:'Built web apps', skills:'HTML, CSS, JS, React'} },
+  'Data Analyst': { skills:['SQL','Python','Tableau'], template:{summary:'Data analyst with {years} years in {industry}.', education:'B.Sc. Stats', experience:'Analyzed datasets', skills:'SQL, Python, Tableau'} }
+};
+
+function init(){
+  const roleSelect=document.getElementById('roleSelect');
+  Object.keys(ROLE_DATA).forEach(r=>{
+    const opt=document.createElement('option');
+    opt.value=r; opt.textContent=r; roleSelect.appendChild(opt);
+  });
+  buildSuggestions();
+  ['name','email','phone','summary','education','experience','skills','templateSelect','fontSelect','headingColor'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('input',updatePreview);
+  });
+  updatePreview();
+}
+
+function buildSuggestions(){
+  const s=document.getElementById('suggestions');
+  s.innerHTML=''; ['Leadership','Teamwork','Communication','Problem Solving'].forEach(t=>{
+    const c=document.createElement('div'); c.className='chip'; c.textContent=t; 
+    c.onclick=()=>{c.classList.toggle('active');c.style.background=c.classList.contains('active')?'#d9d9ff':'#f0f0f0';updatePreview()}; 
+    s.appendChild(c);
+  });
+}
+
+function fillTemplate(){
+  const role=document.getElementById('roleSelect').value;
+  const d=ROLE_DATA[role]; if(!d)return;
+  document.getElementById('summary').value=d.template.summary.replace('{years}',document.getElementById('years').value||2).replace('{industry}',document.getElementById('industry').value||'tech');
+  document.getElementById('education').value=d.template.education;
+  document.getElementById('experience').value=d.template.experience;
+  document.getElementById('skills').value=d.template.skills;
+  updatePreview();
+}
+
+function clearForm(){['name','email','phone','summary','education','experience','skills'].forEach(i=>document.getElementById(i).value='');updatePreview();}
+function generateSummary(){
+  const r=document.getElementById('roleSelect').value||'professional';
+  const y=document.getElementById('years').value||'X';
+  const i=document.getElementById('industry').value||'industry';
+  document.getElementById('summary').value=`${r} with ${y} years experience in ${i}.`;
+  updatePreview();
+}
+
+function updatePreview(){
+  const n=name.value||'Full Name',e=email.value||'email@example.com',p=phone.value||'+91...',s=summary.value||'',edu=education.value||'',exp=experience.value||'',sk=skills.value||'';
+  const template=document.getElementById('templateSelect').value,font=document.getElementById('fontSelect').value,color=document.getElementById('headingColor').value;
+  const resumeHTML=`<div class="resume ${template}" style="font-family:${font};">
+    <h2 class="name" style="color:${color}">${n}</h2>
+    <div class="contact">${e} • ${p}</div>
+    <h3 style="color:${color}">Summary</h3><p>${s}</p>
+    <h3 style="color:${color}">Education</h3><p>${edu}</p>
+    <h3 style="color:${color}">Experience</h3><p>${exp}</p>
+    <h3 style="color:${color}">Skills</h3><p>${sk}</p></div>`;
+  const d=document.getElementById('resumePreview'); 
+  d.innerHTML=resumeHTML;
+  d.className=document.getElementById('deviceToggle').value==='mobile'?'phone':'desktop';
+}
+
+// New PDF function with GUI overlay and scroll fix
+function downloadPDF(){
+  const el=document.getElementById('resumePreview');
+  if(!el.innerText.trim()){ alert('Generate the preview first'); return }
+  const overlay=document.getElementById('loadingOverlay');
+  overlay.style.display='flex';
+
+  // Clone to remove overflow issue
+  const clone=el.cloneNode(true);
+  clone.style.overflow='visible';
+  clone.style.height='auto';
+  clone.style.width='100%';
+  const container=document.createElement('div');
+  container.appendChild(clone);
+
+  const opt={margin:0.2, filename:'Resume.pdf', image:{type:'jpeg',quality:0.98}, html2canvas:{scale:2,scrollY:0}, jsPDF:{unit:'in',format:'a4',orientation:'portrait'}};
+
+  html2pdf().set(opt).from(container).save().finally(()=>{overlay.style.display='none';});
+}
+
+function copyToClipboard(){navigator.clipboard.writeText(document.getElementById('resumePreview').innerText).then(()=>alert('Copied preview text'))}
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
